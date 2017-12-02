@@ -57,11 +57,17 @@ void loop() {
 
   if (strID.equals("E0:23:17:1B")) {
     digitalWrite(GLED,HIGH);
+    digitalWrite(BLED,LOW);
     digitalWrite(RLED,LOW);
     
-  } else {
+  } else if(strID.equals("04:8C:3D:1A")){
+      digitalWrite(BLED,HIGH);
+      digitalWrite(GLED,LOW);
+    digitalWrite(RLED,LOW);
+  }else {
     digitalWrite(GLED,LOW);
     digitalWrite(RLED,HIGH);
+    digitalWrite(BLED,LOW);
   }
   
   rfid.PICC_HaltA();
