@@ -21,7 +21,7 @@
 #define BLINK_DUR 500
 #define WAIT_DUR 50
 
-#define BUFF_LEN 50
+#define BUFF_LEN 20
 
 
 MFRC522 rfid(SS_PIN, RST_PIN);
@@ -192,13 +192,13 @@ int getID (long uid)
   {
     if (ID[i] == uid)
     {
-      Serial.println(i);
+      
       return i;
     }
-    Serial.println(String(ID[i]) + "!=" + String(uid));
+    
   }
   
-  Serial.println(-1);
+  
   return -1;
 }
 
