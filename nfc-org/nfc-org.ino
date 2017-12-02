@@ -5,6 +5,8 @@
 #include "MFRC522.h"
 #include <math.h>
 
+
+
 #define SS_PIN 10
 #define RST_PIN 9
 #define SP_PIN 8
@@ -16,8 +18,8 @@
 #define ABUT 6
 #define CBUT 7
 
-#define BLINK_DUR 400
-#define WAIT_DUR 100
+#define BLINK_DUR 500
+#define WAIT_DUR 50
 
 
 MFRC522 rfid(SS_PIN, RST_PIN);
@@ -27,6 +29,7 @@ bool button_pressed;
 
 void setup()
 {
+    randomSeed(analogRead(0));
     pinMode(RLED, OUTPUT);
     pinMode(GLED, OUTPUT);
     pinMode(BLED, OUTPUT);
@@ -35,11 +38,6 @@ void setup()
     pinMode(CBUT, INPUT);
     
     Serial.begin(9600);
-    Serial.println(fmod(26.00,3));
-    blinkPattern(77); delay(BLINK_DUR);
-    blinkPattern(78); delay(BLINK_DUR);
-    blinkPattern(79); delay(BLINK_DUR);
-    blinkPattern(80); delay(BLINK_DUR);
     
     
     SPI.begin();
@@ -48,7 +46,8 @@ void setup()
 
 void loop()
 {
-
+  int abut = digitalRead(ABUT);
+  if (abut == LOW) button_pressed = false;
   if (!rfid.PICC_IsNewCardPresent() || !rfid.PICC_ReadCardSerial())
     return;
 
@@ -67,29 +66,61 @@ void loop()
   strID.toUpperCase();
   Serial.print("Tap card key: ");
   Serial.println(strID);
-
-  // Temp code; TODO: check if tag is mapped
-  if (strID.equals("E0:23:17:1B"))
+  
+  if (abut == HIGH)
   {
-    digitalWrite(GLED,HIGH);
-    delay(BLINK_DUR);
-    digitalWrite(GLED,LOW);
-    
-  }
-  else if(strID.equals("04:8C:3D:1A"))
-  {
+     if (button_pressed) {
       digitalWrite(BLED,HIGH);
-    delay(BLINK_DUR);
-    digitalWrite(BLED,LOW);
+      delay(BLINK_DUR);
+      digitalWrite(BLED,LOW);
+     }
+     else
+     {
+       digitalWrite(GLED,HIGH);
+       delay(BLINK_DUR);
+       digitalWrite(GLED,LOW);
+     }
+  }
+  else if(digitalRead(CBUT))
+  {
+     for (int i = 0; i < 2; i++)
+     {
+      digitalWrite(RLED,HIGH);
+      delay(WAIT_DUR);
+      digitalWrite(RLED,LOW);
+      delay(WAIT_DUR);
+     }
   }
   else
   {
-    digitalWrite(RLED,HIGH);
-    delay(BLINK_DUR);
-    digitalWrite(RLED,LOW);
+      if (strID.equals("E0:23:17:1B"))
+      {
+        int temp = random(0,81);
+        Serial.println(temp);
+        blinkPattern(temp);
+        
+      }
+      else if(strID.equals("04:8C:3D:1A"))
+      {
+        digitalWrite(BLED,HIGH);
+        delay(BLINK_DUR);
+        digitalWrite(BLED,LOW);
+      }
+      else
+      {
+        digitalWrite(RLED,HIGH);
+        delay(BLINK_DUR);
+        digitalWrite(RLED,LOW);
+      }
   }
-  
-  
+  if (abut == HIGH)
+  {
+    button_pressed = true;
+  }
+  else
+  {
+    button_pressed = false;
+  }
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 }
