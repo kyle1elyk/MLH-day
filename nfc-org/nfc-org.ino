@@ -40,8 +40,8 @@ void loop() {
 
   // Serial.print(F("PICC type: "));
   MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
-  // Serial.println(rfid.PICC_GetTypeName(piccType));
-
+  Serial.println(rfid.PICC_GetTypeName(piccType));
+  
   String strID = "";
   for (byte i = 0; i < 4; i++) {
     strID +=
