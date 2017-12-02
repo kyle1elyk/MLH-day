@@ -15,6 +15,8 @@
 #define ABUT 6
 #define CBUT 7
 
+#define BLINK_DUR 300
+
 
 MFRC522 rfid(SS_PIN, RST_PIN);
 
@@ -56,17 +58,17 @@ void loop() {
 
   if (strID.equals("E0:23:17:1B")) {
     digitalWrite(GLED,HIGH);
-    digitalWrite(BLED,LOW);
-    digitalWrite(RLED,LOW);
+    delay(BLINK_DUR);
+    digitalWrite(GLED,LOW);
     
   } else if(strID.equals("04:8C:3D:1A")){
       digitalWrite(BLED,HIGH);
-      digitalWrite(GLED,LOW);
-    digitalWrite(RLED,LOW);
-  }else {
-    digitalWrite(GLED,LOW);
-    digitalWrite(RLED,HIGH);
+    delay(BLINK_DUR);
     digitalWrite(BLED,LOW);
+  }else {
+    digitalWrite(RLED,HIGH);
+    delay(BLINK_DUR);
+    digitalWrite(RLED,LOW);
   }
   
   rfid.PICC_HaltA();
