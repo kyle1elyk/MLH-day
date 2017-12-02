@@ -21,16 +21,23 @@
 #define BLINK_DUR 500
 #define WAIT_DUR 50
 
+#define BUFF_LEN 50
+
 
 MFRC522 rfid(SS_PIN, RST_PIN);
 
 MFRC522::MIFARE_Key key;
 
 bool button_pressed;
-String[] ID;
-int[] patterns;
+long ID[BUFF_LEN];
+int patterns[BUFF_LEN];
+
+int tempCode = 0;
+int lastIndex = 0;
 void setup()
 {
+    ID[0] = -534571237;
+    patterns[0] = 70;
     randomSeed(analogRead(0));
     pinMode(RLED, OUTPUT);
     pinMode(GLED, OUTPUT);
@@ -39,8 +46,8 @@ void setup()
     pinMode(ABUT, INPUT);
     pinMode(CBUT, INPUT);
 
-    ID = {"E0:23:17:1B","","","","","","","","",""};
-    patterns = {70,0,0,0,0,0,0,0,0,0};
+    
+    
     
     Serial.begin(9600);
     
@@ -60,6 +67,7 @@ void loop()
   Serial.println(rfid.PICC_GetTypeName(piccType));
   
   // Build ID of Tag
+  long lid;
   String strID = "";
   for (byte i = 0; i < 4; i++)
   {
@@ -67,12 +75,17 @@ void loop()
     (rfid.uid.uidByte[i] < 0x10 ? "0" : "") +
     String(rfid.uid.uidByte[i], HEX) +
     (i!=3 ? ":" : "");
+    lid = lid << 8;
+    lid += rfid.uid.uidByte[i];
   }
+  
   strID.toUpperCase();
   Serial.print("Tap card key: ");
   Serial.println(strID);
-  
-  if (abut == HIGH)
+  Serial.println(lid);
+
+  int tempIndex = getID(lid);
+  if (abut == HIGH) // add
   {
      if (button_pressed) {
       digitalWrite(BLED,HIGH);
@@ -81,28 +94,70 @@ void loop()
      }
      else
      {
-       digitalWrite(GLED,HIGH);
-       delay(BLINK_DUR);
-       digitalWrite(GLED,LOW);
+       if (tempIndex >= 0)
+       {
+         tempCode = patterns[tempIndex];
+         digitalWrite(BLED,HIGH);
+         delay(BLINK_DUR);
+         digitalWrite(BLED,LOW);
+       }
+       else
+       {
+        tempCode = random(0,81);
+        digitalWrite(GLED,HIGH);
+        delay(BLINK_DUR);
+        digitalWrite(GLED,LOW);
+       }
+     }
+     if (tempIndex >= 0)
+     {
+      patterns[tempIndex] = tempCode;
+     }
+     else
+     {
+      lastIndex++;
+      lastIndex %= 50;
+      ID[lastIndex] = lid;
+      patterns[lastIndex] = tempCode;
      }
   }
-  else if(digitalRead(CBUT))
+  else if(digitalRead(CBUT)) //clear
   {
-     for (int i = 0; i < 2; i++)
+    digitalWrite(RLED,HIGH);
+      delay(WAIT_DUR);
+      digitalWrite(RLED,LOW);
+      delay(WAIT_DUR);
+     if (tempIndex >= 0)
      {
+      
       digitalWrite(RLED,HIGH);
       delay(WAIT_DUR);
       digitalWrite(RLED,LOW);
       delay(WAIT_DUR);
+      
      }
+     ID[tempIndex] = -1;
+     patterns[tempIndex] = -1;
   }
   else
   {
+      
+      if (tempIndex != -1)
+      {
+        blinkPattern(patterns[tempIndex]);
+      }
+      else
+      {
+        digitalWrite(RLED,HIGH);
+        delay(BLINK_DUR);
+        digitalWrite(RLED,LOW);
+      }
+      /*
       if (strID.equals("E0:23:17:1B"))
       {
         
-        Serial.println(50);
-        blinkPattern(50);
+        //Serial.println(50);
+        //blinkPattern(50);
         
       }
       else if(strID.equals("04:8C:3D:1A"))
@@ -117,6 +172,7 @@ void loop()
         delay(BLINK_DUR);
         digitalWrite(RLED,LOW);
       }
+      */
   }
   if (abut == HIGH)
   {
@@ -128,6 +184,22 @@ void loop()
   }
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
+}
+
+int getID (long uid)
+{
+  for (int i = 0; i < BUFF_LEN; i++)
+  {
+    if (ID[i] == uid)
+    {
+      Serial.println(i);
+      return i;
+    }
+    Serial.println(String(ID[i]) + "!=" + String(uid));
+  }
+  
+  Serial.println(-1);
+  return -1;
 }
 
 void blinkPattern(int patternCode)
