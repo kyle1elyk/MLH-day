@@ -12,15 +12,22 @@
 #define GLED 3
 #define BLED 2
 
+#define ABUT 6
+#define CBUT 7
+
 
 MFRC522 rfid(SS_PIN, RST_PIN);
 
 MFRC522::MIFARE_Key key;
+bool button_pressed;
 
 void setup() {
     pinMode(RLED, OUTPUT);
     pinMode(GLED, OUTPUT);
     pinMode(BLED, OUTPUT);
+    
+    pinMode(ABUT, INPUT);
+    pinMode(CBUT, INPUT);
     
     Serial.begin(9600);
     SPI.begin();
@@ -34,14 +41,6 @@ void loop() {
   // Serial.print(F("PICC type: "));
   MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
   // Serial.println(rfid.PICC_GetTypeName(piccType));
-
-  // Check is the PICC of Classic MIFARE type
-  if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&
-    piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
-    piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
-    Serial.println(F("Your tag is not of type MIFARE Classic."));
-    //return;
-  }
 
   String strID = "";
   for (byte i = 0; i < 4; i++) {
