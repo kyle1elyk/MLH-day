@@ -25,8 +25,10 @@
 MFRC522 rfid(SS_PIN, RST_PIN);
 
 MFRC522::MIFARE_Key key;
-bool button_pressed;
 
+bool button_pressed;
+String[] ID;
+int[] patterns;
 void setup()
 {
     randomSeed(analogRead(0));
@@ -36,6 +38,9 @@ void setup()
     
     pinMode(ABUT, INPUT);
     pinMode(CBUT, INPUT);
+
+    ID = {"E0:23:17:1B","","","","","","","","",""};
+    patterns = {70,0,0,0,0,0,0,0,0,0};
     
     Serial.begin(9600);
     
@@ -71,7 +76,7 @@ void loop()
   {
      if (button_pressed) {
       digitalWrite(BLED,HIGH);
-      delay(BLINK_DUR);
+      delay(WAIT_DUR);
       digitalWrite(BLED,LOW);
      }
      else
@@ -95,16 +100,16 @@ void loop()
   {
       if (strID.equals("E0:23:17:1B"))
       {
-        int temp = random(0,81);
-        Serial.println(temp);
-        blinkPattern(temp);
+        
+        Serial.println(50);
+        blinkPattern(50);
         
       }
       else if(strID.equals("04:8C:3D:1A"))
       {
-        digitalWrite(BLED,HIGH);
-        delay(BLINK_DUR);
-        digitalWrite(BLED,LOW);
+        int temp = random(0,81);
+        Serial.println(temp);
+        blinkPattern(temp);
       }
       else
       {
@@ -133,25 +138,25 @@ void blinkPattern(int patternCode)
     {
         
         float color = (fmod((patternCode / (pow(3, i))), 3));
-        Serial.print(" ");
+        
         if (closeEnough(color,2.0))
         {
-          Serial.print("2");
+          
           blinkCol(2, BLINK_DUR);
         }
         else if (closeEnough(color,1.0))
         {
-          Serial.print("1");
+          
           blinkCol(1, BLINK_DUR);
         }
         else
         {
-          Serial.print("0");
+          
           blinkCol(0, BLINK_DUR);
         }
         delay(WAIT_DUR);
     }
-    Serial.println();
+    
     
 }
 
